@@ -1,0 +1,21 @@
+digraph rgbSystem {
+
+	init [label="", style="invis"];
+	S0 [label=<S<sub><font point-size="10">0</font></sub>>];
+	R [label="leggi\nR", color=red];
+	G [label="leggi\nG", color=green];
+	B [label="leggi\nB", color=blue];
+
+	init -> S0 [label=" R = 0\nG = 0\nB = 0"];
+	
+	S0 -> R [label=" T == 1 x 2sec / blink(R, 3)"];
+
+	R -> S0 [label=" T == 1 x 2sec /\nblinkAll(3)"];
+	R -> G [label=" T == 1 x 0.2sec / blink(G, 3)"];
+
+	G -> S0 [label=" T == 1 x 2sec /\nblinkAll(3)"];
+	G -> B [label=" T == 1 x 0.2sec / blink(B, 3)"];
+
+	B -> S0 [label=" T == 1 x 2sec /\nblinkAll(3)"];
+	B -> R [label=" T == 1 x 0.2sec / blink(R, 3)"];
+}

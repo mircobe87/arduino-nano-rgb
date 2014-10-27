@@ -1,0 +1,35 @@
+#!/bin/bash
+
+DOC_DIR="doc"
+DOC_INDEX="index.html"
+
+GRAPH_FILE_SRC="rgb.dot"
+GRAPH_FILE="graph.svg"
+
+CWD="$( pwd )"
+
+doxygen -h >& /dev/null
+if [ $? != 0 ]; then
+	echo -e "doxygen non trovato.\nImpossibile generare lo documentazione."
+	exit 1
+fi
+
+dot -? >& /dev/null
+if [ $? != 0 ]; then
+	echo -e "dot non trovato.\nImpossibile generare lo documentazione."
+	exit 1
+fi
+
+
+if [ -d $DOC_DIR ]; then
+	rm -rf $DOC_DIR
+fi
+
+mkdir $DOC_DIR
+doxygen
+dot -Tsvg $GRAPH_FILE_SRC > $DOC_DIR/$GRAPH_FILE
+
+xdg-open "file://$CWD/$DOC_DIR/html/$DOC_INDEX" &
+xdg-open "file://$CWD/$DOC_DIR/$GRAPH_FILE" &
+
+exit 0
