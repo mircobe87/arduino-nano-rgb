@@ -32,3 +32,4 @@ Il funzionamento della macchina è descritto nel diagramma seguente:
 - **showDocu**: script `bash` che genera la documentazione e la apre nel web browser di default.
 - **README.md**: questo file.
 - **doxyfile**: file di configurazione `doxygen` per generare la documentazione.
+- **arduino_rgb.sch**: sorgente gEDA dello schema circuitale.
