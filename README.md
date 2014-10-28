@@ -24,7 +24,7 @@ Db   | Blu
 4. Uscire dalla **edit-mode** tenendo premuto il bottone per almeno 1 secondo.
 
 Il funzionamento della macchina è descritto nel diagramma seguente:
-!["Grafo"](./doc/graph.svg)
+!["Grafo"](./doc/graph.png)
 
 ## I File
 - **rgb.ino**: codice sorgente Arduino.
