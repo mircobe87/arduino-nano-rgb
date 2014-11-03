@@ -26,20 +26,21 @@
  * ed, a questo punto, per ogni colore si può regolare l'intensità tramite il
  * trimmer. Una volta che un colore è stato regolato, si passa al successivo
  * premendo il tasto per almeno SHOLDTIME mSec. La selezione dei colori è
- * circolare. Per uscire dalla 'edit-mode' è necessario premere a lundo il
+ * circolare. Per uscire dalla 'edit-mode' è necessario premere a lungo il
  * bottone.
  * 
  * L'ingresso nella edit-mode è segnalato attraverso un lampeggiamento del
  * colore che è al momento regolabile. Ogni volta che si seleziona un altro
  * colore, questo lampeggia per alcune volte.
  *
- * L'uscita dalla 'edit-mode' è segnalata dal lampeggiamento simultaneto di
+ * L'uscita dalla 'edit-mode' è segnalata dal lampeggiamento simultaneo di
  * tutti i colori.
  *
  * @file rgb.ino
  * @author Mirco Bertelli
  * @date lun 27 ott 2014, 18.52.20, CET
  */
+#include <LiquidCrystal.h>
 
 #define S0 -1 /**< stato iniziale */
 #define R 0   /**< stato in cui si può regolare il ROSSO */
@@ -53,18 +54,32 @@
 #define AIN 0    /**< pin dell'ingresso analogico usato */
 #define NCOLOR 3 /**< numero dei colori */
 
-#define MILS 10        /**< millisecondi di attesa tra le leture del bottone */
+#define MILS 10        /**< millisecondi di attesa tra le letture del bottone */
 #define LHOLDTIME 1000 /**< attesa per entrare in edit-mode */
 #define SHOLDTIME 20   /**< attesa per selezionare il colore da modificare */
+
+#define LCD_RS_PIN 2 /**< il digital pin dove è collegato il pin RS del display */
+#define LCD_E_PIN  3 /**< il digital pin dove è collegato il pin E del display */
+#define LCD_D4_PIN 5 /**< il digital pin dove è collegato il pin D4 del display */
+#define LCD_D5_PIN 6 /**< il digital pin dove è collegato il pin D5 del display */
+#define LCD_D6_PIN 7 /**< il digital pin dove è collegato il pin D6 del display */
+#define LCD_D7_PIN 8 /**< il digital pin dove è collegato il pin D7 del display */
 
 int stato;         /**< lo stato corrente del sistema */
 int value[NCOLOR]; /**< valori di luminosità dei vari colori */
 int pin[NCOLOR];   /**< vettore dei pin dei colori */
 int holdTime;      /**< durata bottone premuto */
+int lcdValueColumn[NCOLOR]; /**< gli indici delle colonne del display dove scrivere i valori r,g,b */
+
+// creo un istanza del display specificando i suo collegamento ad Arduino
+LiquidCrystal lcd(LCD_RS_PIN, LCD_E_PIN, LCD_D4_PIN, LCD_D5_PIN, LCD_D6_PIN, LCD_D7_PIN);
 
 void setup()
 {
-	// cofiguro i pin dei colori
+	// inizializzo il display specificando il numero di colonne e righe
+	lcd.begin(16, 2);
+
+	// configuro i pin dei colori
 	pinMode(RPIN, OUTPUT);
 	pinMode(GPIN, OUTPUT);
 	pinMode(BPIN, OUTPUT);
@@ -93,6 +108,16 @@ void setup()
 	for(int i=0; i<NCOLOR; i++){
 		analogWrite(pin[i], value[i]);
 	}
+
+	lcd.setCursor(0, 0);
+	lcd.print(" R   G   B  Edit");
+	lcd.setCursor(0, 1);
+	lcd.print("0   0   0   ----");
+
+	// le colonne del display dove scrivere i valore per r, g & b
+	lcdValueColumn[R] = 0;
+	lcdValueColumn[G] = 4;
+	lcdValueColumn[B] = 8;
 }
 
 void loop()
@@ -115,24 +140,42 @@ void loop()
 
 /**
  * Causa lo spostamento del sistema dallo stato corrente a quello
- * specificato.
+ * specificato. Stampa il nuovo stato sul display.
  *
  * @param state stato di destinazione.
  */
 void switchTo(int state)
 {
 	stato = state;
+
+	// scrivo sul display il colore che si stà modificando
+	lcd.setCursor(12,1);
+	if (state == S0)
+		lcd.print("----");
+	else if (state == R)
+		lcd.print("Red  ");
+	else if (state == G)
+		lcd.print("Green");
+	else
+		lcd.print("Blu  ");
 }
 
 /**
  * Legge il valore analogico dal pin di input e aggiorna la luminosità
- * del colore specificato.
+ * del colore specificato. Mostra il valore anche sul display.
  * 
  * @param colorPin pin sul quale è collegato il colore
  */
 void editColor(int colorPin)
 {
+	// elimino il vecchio valore stampato sul display
+	lcd.setCursor(lcdValueColumn[colorPin], 1);
+	lcd.print("   ");
+	lcd.setCursor(lcdValueColumn[colorPin], 1);
+
 	value[colorPin] = (analogRead(AIN) >> 2);
+	// stampo il nuovo valore
+	lcd.print(value[colorPin], DEC);
 	analogWrite(pin[colorPin], value[colorPin]);
 	delay(100);
 }
@@ -142,7 +185,7 @@ void editColor(int colorPin)
  * Spegne tutti i colori, fa lampeggiare il colore specificato, ripristina tutti
  * i colori.
  *
- * @param p numero del pin sul quale è collecato il colore da far lampeggiare.
+ * @param p numero del pin sul quale è collegato il colore da far lampeggiare.
  * @param nBlink numero di lampi.
  */
 void blink(int p, int nBlink)
@@ -163,7 +206,7 @@ void blink(int p, int nBlink)
 }
 
 /**
- * Lampeggiamento simultaneto di tutti i colori
+ * Lampeggiamento simultaneo di tutti i colori
  *
  * @param nBlink numero di lampeggiamenti da eseguire
  */
@@ -192,7 +235,7 @@ void blinkAll(int nBlink)
 }
 
 /**
- * Gestisce le operazioni da svolgere a seconta dello stato in cui si trova il
+ * Gestisce le operazioni da svolgere a seconda dello stato in cui si trova il
  * sistema.
  *
  * @param currentColorState stato corrente del sistema
